@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vincent's Brave Journal 🦁</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --sky:#a8d8ff;--sun:#ffd166;--grass:#06d6a0;--fire:#ef476f;
+      --purple:#c77dff;--dark:#1a1a2e;--card:#fff;--bg:#eaf6ff;
+      --text:#1a1a2e;--muted:#6b7280;--radius:20px;
+      --shadow:0 8px 32px rgba(0,0,0,.10);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;color:var(--text);overflow-x:hidden}
+    .bg-doodles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+    .doodle{position:absolute;opacity:.13;font-size:3rem;animation:float 6s ease-in-out infinite}
+    .doodle:nth-child(1){top:5%;left:3%;animation-delay:0s}
+    .doodle:nth-child(2){top:15%;right:5%;animation-delay:1s}
+    .doodle:nth-child(3){top:45%;left:1%;animation-delay:2s}
+    .doodle:nth-child(4){top:65%;right:3%;animation-delay:.5s}
+    .doodle:nth-child(5){top:80%;left:8%;animation-delay:1.5s}
+    .doodle:nth-child(6){top:30%;right:2%;animation-delay:3s}
+    .doodle:nth-child(7){bottom:5%;right:10%;animation-delay:2.5s}
+    @keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-18px) rotate(8deg)}}
+    .container{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:24px 16px 80px}
+    /* HEADER */
+    .header{text-align:center;margin-bottom:24px;animation:slideDown .6s cubic-bezier(.34,1.56,.64,1)}
+    @keyframes slideDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}
+    .header-emoji{font-size:3rem;display:block;margin-bottom:4px}
+    .header h1{font-family:'Fredoka One',cursive;font-size:2.2rem;color:var(--dark);line-height:1.1}
+    .header h1 span{color:var(--fire)}
+    .date-badge{display:inline-block;margin-top:8px;background:var(--sun);color:var(--dark);font-weight:800;font-size:.85rem;padding:4px 14px;border-radius:999px}
+    /* LOADING */
+    #loadingOverlay{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .4s}
+    #loadingOverlay.hidden{opacity:0;pointer-events:none}
+    .loading-lion{font-size:4rem;animation:bounce .8s infinite alternate}
+    @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-16px)}}
+    .loading-text{font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--dark)}
+    .loading-sub{font-size:.9rem;font-weight:700;color:var(--muted)}
+    /* SETUP */
+    #setupOverlay{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
+    #setupOverlay.hidden{display:none}
+    .setup-card{background:white;border-radius:var(--radius);padding:32px 28px;max-width:520px;width:100%;box-shadow:var(--shadow);animation:popIn .4s cubic-bezier(.34,1.56,.64,1);margin:auto}
+    @keyframes popIn{from{opacity:0;transform:scale(.94) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    .setup-card h2{font-family:'Fredoka One',cursive;font-size:1.8rem;margin-bottom:6px}
+    .setup-card .sub{color:var(--muted);font-weight:600;font-size:.9rem;line-height:1.6;margin-bottom:24px}
+    .steps{margin-bottom:20px}
+    .step{display:flex;gap:12px;align-items:flex-start;margin-bottom:16px;font-size:.88rem;font-weight:600;line-height:1.6}
+    .step-num{width:26px;height:26px;border-radius:50%;background:var(--dark);color:white;font-family:'Fredoka One',cursive;font-size:.95rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+    .step a{color:var(--dark);font-weight:800}
+    .step code{background:#f0f4ff;padding:1px 6px;border-radius:5px;font-size:.82rem;color:var(--dark);font-family:monospace}
+    .divider{border:none;border-top:2px dashed #e5e7eb;margin:20px 0}
+    .field-label{font-size:.75rem;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:5px}
+    .setup-input{width:100%;padding:11px 14px;border:2.5px solid #e5e7eb;border-radius:12px;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:700;outline:none;transition:border-color .2s;margin-bottom:10px;background:#f9fafb;color:var(--text)}
+    .setup-input:focus{border-color:var(--sky);background:white}
+    .setup-input::placeholder{color:#b0b7c0;font-weight:600}
+    .setup-error{color:var(--fire);font-size:.82rem;font-weight:700;margin-bottom:10px;min-height:18px}
+    .setup-btn{width:100%;padding:14px;border:none;border-radius:14px;background:var(--dark);color:white;font-family:'Fredoka One',cursive;font-size:1.2rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(26,26,46,.25)}
+    .setup-btn:hover{transform:translateY(-2px)}
+    .setup-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    /* SYNC BAR */
+    .sync-bar{display:flex;align-items:center;gap:8px;background:white;border-radius:12px;padding:8px 14px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);font-size:.82rem;font-weight:700}
+    .sync-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .sync-dot.ok{background:var(--grass)}
+    .sync-dot.syncing{background:var(--sun);animation:blink .8s infinite}
+    .sync-dot.error{background:var(--fire)}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+    .sync-msg{flex:1;color:var(--muted)}
+    .sync-reset{background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--muted);font-weight:700;padding:2px 6px;border-radius:6px}
+    .sync-reset:hover{color:var(--fire)}
+    /* STREAK */
+    .streak-bar{background:var(--sun);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;gap:14px;margin-bottom:16px;box-shadow:0 4px 16px rgba(255,209,102,.35)}
+    .streak-fire{font-size:2rem}
+    .streak-info{flex:1}
+    .streak-info strong{font-family:'Fredoka One',cursive;font-size:1.2rem;color:var(--dark);display:block}
+    .streak-info span{font-size:.85rem;font-weight:700;color:#7a5c00}
+    /* TABS */
+    .tabs{display:flex;gap:8px;margin-bottom:20px}
+    .tab-btn{flex:1;padding:12px 8px;border:none;border-radius:var(--radius);font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:800;cursor:pointer;transition:all .2s;background:white;color:var(--muted);box-shadow:0 2px 8px rgba(0,0,0,.07)}
+    .tab-btn.active{background:var(--dark);color:white;transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,26,46,.25)}
+    .tab-btn:hover:not(.active){transform:translateY(-1px)}
+    /* CARD */
+    .card{background:var(--card);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);margin-bottom:16px;animation:popIn .4s cubic-bezier(.34,1.56,.64,1)}
+    .section-label{font-size:.8rem;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px}
+    /* TEXTAREA */
+    .journal-textarea{width:100%;min-height:110px;border:2.5px solid #e5e7eb;border-radius:14px;padding:14px 16px;font-family:'Nunito',sans-serif;font-size:1.05rem;font-weight:600;color:var(--text);resize:vertical;transition:border-color .2s;outline:none;background:#f9fafb;line-height:1.6}
+    .journal-textarea:focus{border-color:var(--sky);background:#fff}
+    .journal-textarea::placeholder{color:#b0b7c0;font-weight:600}
+    /* MIC */
+    .mic-row{display:flex;align-items:center;gap:10px;margin-top:8px}
+    .mic-btn{display:flex;align-items:center;gap:7px;background:var(--grass);color:white;border:none;border-radius:999px;padding:9px 18px;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 4px 12px rgba(6,214,160,.3)}
+    .mic-btn:hover{transform:scale(1.05)}
+    .mic-btn.recording{background:var(--fire);animation:pulse 1s infinite}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+    .mic-hint{font-size:.8rem;color:var(--muted);font-weight:600}
+    /* EMOJI */
+    .emoji-grid{display:flex;flex-wrap:wrap;gap:8px}
+    .emoji-option{width:50px;height:50px;border-radius:14px;border:2.5px solid #e5e7eb;background:#f9fafb;font-size:1.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;position:relative}
+    .emoji-option:hover{transform:scale(1.12);border-color:var(--sky)}
+    .emoji-option.selected{border-color:var(--fire);background:#fff0f4;transform:scale(1.15);box-shadow:0 4px 14px rgba(239,71,111,.2)}
+    .emoji-option .elabel{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:.6rem;color:var(--muted);white-space:nowrap;font-weight:700;opacity:0;transition:opacity .15s}
+    .emoji-option:hover .elabel,.emoji-option.selected .elabel{opacity:1}
+    /* SAVE */
+    .save-btn{width:100%;padding:16px;border:none;border-radius:var(--radius);background:var(--dark);color:white;font-family:'Fredoka One',cursive;font-size:1.3rem;cursor:pointer;transition:all .2s;box-shadow:0 6px 24px rgba(26,26,46,.25)}
+    .save-btn:hover{transform:translateY(-2px)}
+    .save-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    /* TODAY BANNER */
+    .today-saved{background:linear-gradient(135deg,#06d6a0,#a8d8ff);border-radius:var(--radius);padding:24px;text-align:center;color:white;margin-bottom:16px}
+    .today-saved h2{font-family:'Fredoka One',cursive;font-size:1.6rem;margin-bottom:4px}
+    .today-saved p{font-weight:700;font-size:1rem;opacity:.9}
+    .edit-today-btn{margin-top:12px;background:rgba(255,255,255,.3);border:2px solid white;color:white;padding:8px 20px;border-radius:999px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;transition:all .2s}
+    .edit-today-btn:hover{background:rgba(255,255,255,.5)}
+    /* MEMORIES */
+    .memory-section-title{font-family:'Fredoka One',cursive;font-size:1.4rem;margin-bottom:14px;color:var(--dark)}
+    .memory-card{border-radius:var(--radius);padding:20px;margin-bottom:14px;box-shadow:var(--shadow)}
+    .memory-card.week{background:linear-gradient(135deg,#c77dff22,#c77dff55);border:2px solid #c77dff55}
+    .memory-card.month{background:linear-gradient(135deg,#ffd16622,#ffd16655);border:2px solid #ffd16655}
+    .memory-card.year{background:linear-gradient(135deg,#ef476f22,#ef476f55);border:2px solid #ef476f55}
+    .memory-when{display:inline-flex;align-items:center;gap:5px;font-size:.75rem;font-weight:900;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding:3px 10px;border-radius:999px}
+    .memory-card.week .memory-when{background:var(--purple);color:white}
+    .memory-card.month .memory-when{background:var(--sun);color:var(--dark)}
+    .memory-card.year .memory-when{background:var(--fire);color:white}
+    .memory-date{font-size:.8rem;font-weight:700;color:var(--muted);margin-bottom:8px}
+    .memory-feeling{font-size:2rem;margin-bottom:6px}
+    .memory-text{font-size:.95rem;font-weight:600;line-height:1.6;color:var(--text)}
+    .no-memory{text-align:center;padding:28px 20px;background:white;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:14px}
+    .no-memory .emoji{font-size:2.5rem;margin-bottom:8px}
+    .no-memory p{font-weight:700;color:var(--muted);font-size:.9rem}
+    /* ALL ENTRIES */
+    .entry-list-item{background:white;border-radius:14px;padding:16px;margin-bottom:10px;box-shadow:0 2px 10px rgba(0,0,0,.06);display:flex;gap:14px;align-items:flex-start}
+    .entry-feeling-big{font-size:2rem;flex-shrink:0}
+    .entry-meta{flex:1;min-width:0}
+    .entry-meta-date{font-size:.75rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+    .entry-meta-text{font-size:.92rem;font-weight:600;line-height:1.5;color:var(--text);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .delete-btn{background:none;border:none;cursor:pointer;font-size:1rem;color:#d1d5db;transition:color .15s;flex-shrink:0;padding:4px}
+    .delete-btn:hover{color:var(--fire)}
+    /* TOAST */
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--dark);color:white;padding:12px 24px;border-radius:999px;font-weight:800;font-size:.95rem;transition:transform .4s cubic-bezier(.34,1.56,.64,1);z-index:999;white-space:nowrap}
+    .toast.show{transform:translateX(-50%) translateY(0)}
+    /* CONFETTI */
+    .confetti-piece{position:fixed;width:10px;height:16px;top:-20px;border-radius:2px;animation:confettiFall linear forwards;z-index:9999;pointer-events:none}
+    @keyframes confettiFall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+    .panel{display:none}.panel.active{display:block}
+    .emoji-row-wrap{margin-bottom:30px}
+    .empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+    .empty-state .emoji{font-size:3rem;margin-bottom:10px}
+    .empty-state p{font-weight:700;font-size:1rem}
+  </style>
+</head>
+<body>
+<div class="bg-doodles">
+  <div class="doodle">⭐</div><div class="doodle">🏆</div>
+  <div class="doodle">💪</div><div class="doodle">🌟</div>
+  <div class="doodle">🎯</div><div class="doodle">🚀</div>
+  <div class="doodle">✨</div>
+</div>
+
+<!-- LOADING -->
+<div id="loadingOverlay">
+  <div class="loading-lion">🦁</div>
+  <div class="loading-text">Loading your journal…</div>
+  <div class="loading-sub">Fetching your brave moments ✨</div>
+</div>
+
+<!-- SETUP -->
+<div id="setupOverlay" class="hidden">
+  <div class="setup-card">
+    <h2>🦁 One-time setup!</h2>
+    <p class="sub">Vincent's journal uses <strong>Firebase</strong> (free from Google) to sync across all devices. Follow these steps once — takes about 10 minutes!</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> and click <strong>Add project</strong>. Name it <em>vincents-journal</em>. Disable Google Analytics. Click <strong>Create project</strong>.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>Inside your project, click the <strong>Web icon (&lt;/&gt;)</strong>. Give it any nickname and click <strong>Register app</strong>. You'll see a config object — keep that page open.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>In the left sidebar go to <strong>Build → Firestore Database</strong>. Click <strong>Create database</strong>, choose <strong>Start in test mode</strong>, pick any location, click <strong>Enable</strong>.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div>Copy the values from your Firebase config (e.g. <code>apiKey</code>, <code>projectId</code>) into the fields below and click Connect!</div>
+      </div>
+    </div>
+    <hr class="divider" />
+    <div class="field-label">API Key</div>
+    <input class="setup-input" id="f_apiKey" placeholder="AIzaSy…" />
+    <div class="field-label">Auth Domain</div>
+    <input class="setup-input" id="f_authDomain" placeholder="vincents-journal.firebaseapp.com" />
+    <div class="field-label">Project ID</div>
+    <input class="setup-input" id="f_projectId" placeholder="vincents-journal-12345" />
+    <div class="field-label">Storage Bucket</div>
+    <input class="setup-input" id="f_storageBucket" placeholder="vincents-journal.appspot.com" />
+    <div class="field-label">Messaging Sender ID</div>
+    <input class="setup-input" id="f_messagingSenderId" placeholder="123456789" />
+    <div class="field-label">App ID</div>
+    <input class="setup-input" id="f_appId" placeholder="1:123456789:web:abc123" />
+    <div class="setup-error" id="setupError"></div>
+    <button class="setup-btn" id="setupBtn" onclick="doSetup()">🚀 Connect &amp; Start Journaling!</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="container" id="mainApp" style="display:none">
+  <div class="header">
+    <span class="header-emoji">🦁</span>
+    <h1>Vincent's <span>Brave</span> Journal</h1>
+    <div class="date-badge" id="todayLabel"></div>
+  </div>
+  <div class="sync-bar">
+    <div class="sync-dot syncing" id="syncDot"></div>
+    <span class="sync-msg" id="syncMsg">Connecting…</span>
+    <button class="sync-reset" onclick="resetSetup()">⚙️ Reset</button>
+  </div>
+  <div class="streak-bar">
+    <div class="streak-fire">🔥</div>
+    <div class="streak-info">
+      <strong id="streakCount">0 day streak!</strong>
+      <span id="streakMsg">Start writing to build your streak!</span>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('write')">✏️ Write</button>
+    <button class="tab-btn" onclick="switchTab('memories')">⏪ Memories</button>
+    <button class="tab-btn" onclick="switchTab('all')">📖 All</button>
+  </div>
+
+  <div class="panel active" id="panel-write">
+    <div id="todaySavedBanner" style="display:none">
+      <div class="today-saved">
+        <h2>You did it today! 🎉</h2>
+        <p id="todaySavedPreview"></p>
+        <button class="edit-today-btn" onclick="editToday()">Edit today's entry</button>
+      </div>
+    </div>
+    <div id="writeForm">
+      <div class="card">
+        <div class="section-label">What hard thing did you do today?</div>
+        <textarea id="hardThing" class="journal-textarea" placeholder="e.g. I raised my hand in class even though I was nervous…"></textarea>
+        <div class="mic-row">
+          <button class="mic-btn" id="micBtn1" onclick="toggleMic('hardThing','micBtn1')">🎙️ <span id="micLabel1">Speak it</span></button>
+          <span class="mic-hint" id="micHint1">Tap to talk instead of type</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-label">How did it make you feel?</div>
+        <div class="emoji-row-wrap"><div class="emoji-grid" id="emojiGrid"></div></div>
+      </div>
+      <button class="save-btn" id="saveBtn" onclick="saveEntry()">✅ Save Today's Entry</button>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-memories">
+    <div class="memory-section-title">⏪ Look how far you've come!</div>
+    <div id="memoriesContainer"></div>
+  </div>
+
+  <div class="panel" id="panel-all">
+    <div class="memory-section-title">📖 Every Brave Thing</div>
+    <div id="allEntriesContainer"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  PASTE YOUR FIREBASE CONFIG HERE to skip the setup screen.
+//  Leave blank to use the setup UI on first visit.
+// ═══════════════════════════════════════════════════════════
+const HARDCODED_CONFIG = {
+  apiKey:            "",
+  authDomain:        "",
+  projectId:         "",
+  storageBucket:     "",
+  messagingSenderId: "",
+  appId:             ""
+};
+// ═══════════════════════════════════════════════════════════
+
+const LS_CONFIG   = 'vj_firebase_config';
+const LS_CACHE    = 'vj_cache';
+const COLLECTION  = 'entries';
+
+const FEELINGS = [
+  {emoji:'😊',label:'Happy'},{emoji:'💪',label:'Strong'},
+  {emoji:'😤',label:'Proud'},{emoji:'😌',label:'Calm'},
+  {emoji:'😅',label:'Relieved'},{emoji:'😬',label:'Nervous'},
+  {emoji:'😢',label:'Sad'},{emoji:'😠',label:'Frustrated'},
+  {emoji:'😍',label:'Excited'},{emoji:'🥱',label:'Tired'},
+  {emoji:'🤩',label:'Amazing'},{emoji:'😕',label:'Unsure'},
+];
+
+let db = null, entries = [], selectedFeeling = null;
+let isRecording = false, recognition = null, unsubscribe = null;
+
+// ─── BOOT ────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('todayLabel').textContent =
+    new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  buildEmojiGrid();
+  checkMicSupport();
+
+  const storedRaw = localStorage.getItem(LS_CONFIG);
+  const stored = storedRaw ? JSON.parse(storedRaw) : null;
+  const cfg = isConfigFilled(HARDCODED_CONFIG) ? HARDCODED_CONFIG
+            : (stored && isConfigFilled(stored)) ? stored : null;
+
+  if (!cfg) { hideLoading(); showSetup(); return; }
+
+  const cached = localStorage.getItem(LS_CACHE);
+  if (cached) { try { entries = JSON.parse(cached); } catch {} }
+  showApp(); refreshUI();
+  initFirebase(cfg);
+});
+
+function isConfigFilled(c){ return c && c.apiKey && c.projectId; }
+
+// ─── SETUP ───────────────────────────────────────────────────
+function showSetup(){ document.getElementById('setupOverlay').classList.remove('hidden'); }
+function showApp(){
+  hideLoading();
+  document.getElementById('setupOverlay').classList.add('hidden');
+  document.getElementById('mainApp').style.display = 'block';
+}
+function hideLoading(){
+  const ov = document.getElementById('loadingOverlay');
+  ov.classList.add('hidden');
+  setTimeout(() => ov.remove(), 500);
+}
+function doSetup(){
+  const cfg = {
+    apiKey:            document.getElementById('f_apiKey').value.trim(),
+    authDomain:        document.getElementById('f_authDomain').value.trim(),
+    projectId:         document.getElementById('f_projectId').value.trim(),
+    storageBucket:     document.getElementById('f_storageBucket').value.trim(),
+    messagingSenderId: document.getElementById('f_messagingSenderId').value.trim(),
+    appId:             document.getElementById('f_appId').value.trim(),
+  };
+  const errEl = document.getElementById('setupError');
+  errEl.textContent = '';
+  if (!cfg.apiKey || !cfg.projectId){ errEl.textContent = 'Please fill in at least the API Key and Project ID!'; return; }
+  localStorage.setItem(LS_CONFIG, JSON.stringify(cfg));
+  showApp();
+  initFirebase(cfg);
+}
+function resetSetup(){
+  if (!confirm('Disconnect this device from the journal?')) return;
+  if (unsubscribe) unsubscribe();
+  localStorage.removeItem(LS_CONFIG);
+  localStorage.removeItem(LS_CACHE);
+  location.reload();
+}
+
+// ─── FIREBASE ─────────────────────────────────────────────────
+function initFirebase(cfg){
+  try {
+    const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(cfg);
+    db = firebase.firestore(app);
+    subscribeToEntries();
+  } catch(e){ setSyncStatus('error','Firebase error — check your config'); console.error(e); }
+}
+function subscribeToEntries(){
+  setSyncStatus('syncing','Connecting to Firebase…');
+  unsubscribe = db.collection(COLLECTION).orderBy('date','desc')
+    .onSnapshot(snap => {
+      entries = snap.docs.map(d => ({id:d.id,...d.data()}));
+      localStorage.setItem(LS_CACHE, JSON.stringify(entries));
+      refreshUI();
+      setSyncStatus('ok','Synced with Firebase ☁️');
+    }, err => {
+      setSyncStatus('error','Sync error — check Firestore rules');
+      console.error(err);
+    });
+}
+async function pushEntry(entry){
+  setSyncStatus('syncing','Saving…');
+  try { await db.collection(COLLECTION).doc(entry.date).set(entry); }
+  catch(e){ setSyncStatus('error','Save failed'); showToast('❌ Could not save — check your connection'); }
+}
+async function removeEntry(dateKey){
+  setSyncStatus('syncing','Deleting…');
+  try { await db.collection(COLLECTION).doc(dateKey).delete(); }
+  catch(e){ setSyncStatus('error','Delete failed'); showToast('❌ Could not delete'); }
+}
+function setSyncStatus(state,msg){
+  const dot=document.getElementById('syncDot'), txt=document.getElementById('syncMsg');
+  if(dot) dot.className='sync-dot '+state;
+  if(txt) txt.textContent=msg;
+}
+
+// ─── EMOJI GRID ───────────────────────────────────────────────
+function buildEmojiGrid(){
+  const grid=document.getElementById('emojiGrid');
+  FEELINGS.forEach(f=>{
+    const btn=document.createElement('button');
+    btn.className='emoji-option';
+    btn.innerHTML=`${f.emoji}<span class="elabel">${f.label}</span>`;
+    btn.onclick=()=>selectFeeling(f,btn);
+    grid.appendChild(btn);
+  });
+}
+function selectFeeling(f,btn){
+  document.querySelectorAll('.emoji-option').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected'); selectedFeeling=f;
+}
+
+// ─── SPEECH ───────────────────────────────────────────────────
+function checkMicSupport(){
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
+    document.querySelectorAll('.mic-hint').forEach(el=>el.textContent='(Voice not supported in this browser)');
+    document.querySelectorAll('.mic-btn').forEach(b=>b.disabled=true);
+  }
+}
+function toggleMic(fieldId,btnId){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR) return;
+  if(isRecording){recognition&&recognition.stop();return;}
+  recognition=new SR(); recognition.lang='en-US'; recognition.interimResults=true; recognition.continuous=false;
+  const field=document.getElementById(fieldId),btn=document.getElementById(btnId);
+  const hint=btn.parentElement.querySelector('.mic-hint'),label=btn.querySelector('span');
+  let original=field.value;
+  recognition.onstart=()=>{isRecording=true;btn.classList.add('recording');label.textContent='Listening… (tap to stop)';if(hint)hint.textContent='🎤 Speak now!'};
+  recognition.onresult=e=>{
+    let interim='',final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)final+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
+    field.value=original+(final||interim);if(final)original=field.value;
+  };
+  recognition.onend=()=>{isRecording=false;btn.classList.remove('recording');label.textContent='Speak it';if(hint)hint.textContent='Tap to talk instead of type';};
+  recognition.onerror=e=>{isRecording=false;btn.classList.remove('recording');label.textContent='Speak it';if(hint)hint.textContent=e.error==='not-allowed'?'❌ Mic permission denied':'Tap to talk instead of type';};
+  recognition.start();
+}
+
+// ─── SAVE / DELETE ────────────────────────────────────────────
+async function saveEntry(){
+  const text=document.getElementById('hardThing').value.trim();
+  if(!text){showToast('✏️ Tell me about the hard thing first!');return;}
+  if(!selectedFeeling){showToast('😊 Pick how it made you feel!');return;}
+  const btn=document.getElementById('saveBtn'); btn.disabled=true;
+  const entry={date:todayKey(),text,feeling:selectedFeeling};
+  showConfetti(); showToast("🎉 Amazing! You're so brave, Vincent!"); clearForm();
+  await pushEntry(entry); btn.disabled=false;
+}
+function clearForm(){
+  document.getElementById('hardThing').value='';
+  document.querySelectorAll('.emoji-option').forEach(b=>b.classList.remove('selected'));
+  selectedFeeling=null;
+}
+async function deleteEntry(dateKey){
+  if(!confirm('Delete this entry forever?')) return;
+  await removeEntry(dateKey); showToast('Entry deleted 🗑️');
+}
+
+// ─── UI REFRESH ───────────────────────────────────────────────
+function refreshUI(){
+  updateStreak(); checkTodayEntry();
+  const tabs=[...document.querySelectorAll('.tab-btn')];
+  const active=tabs.findIndex(b=>b.classList.contains('active'));
+  if(active===1) renderMemories();
+  if(active===2) renderAll();
+}
+
+// ─── TODAY ────────────────────────────────────────────────────
+function checkTodayEntry(){
+  const today=entries.find(e=>e.date===todayKey());
+  const banner=document.getElementById('todaySavedBanner'),form=document.getElementById('writeForm');
+  if(today){
+    banner.style.display='block'; form.style.display='none';
+    document.getElementById('todaySavedPreview').textContent=`${today.feeling.emoji}  "${today.text.slice(0,60)}${today.text.length>60?'…':''}"`;
+  } else { banner.style.display='none'; form.style.display='block'; }
+}
+function editToday(){
+  const today=entries.find(e=>e.date===todayKey()); if(!today) return;
+  document.getElementById('hardThing').value=today.text;
+  const idx=FEELINGS.findIndex(f=>f.emoji===today.feeling.emoji);
+  if(idx!==-1) selectFeeling(today.feeling,document.querySelectorAll('.emoji-option')[idx]);
+  document.getElementById('todaySavedBanner').style.display='none';
+  document.getElementById('writeForm').style.display='block';
+}
+
+// ─── STREAK ───────────────────────────────────────────────────
+function updateStreak(){
+  if(!entries.length){
+    document.getElementById('streakCount').textContent='0 day streak!';
+    document.getElementById('streakMsg').textContent='Start writing to build your streak!';
+    return;
+  }
+  const dates=new Set(entries.map(e=>e.date));
+  let streak=0,d=new Date();
+  if(!dates.has(todayKey())) d.setDate(d.getDate()-1);
+  while(true){const k=d.toISOString().slice(0,10);if(dates.has(k)){streak++;d.setDate(d.getDate()-1);}else break;}
+  document.getElementById('streakCount').textContent=streak===1?'🔥 1 day streak!':`🔥 ${streak} day streak!`;
+  document.getElementById('streakMsg').textContent=
+    streak>=7?"You're on fire! Keep going! 🚀":
+    streak>=3?"Amazing consistency, Vincent! 💪":
+    streak>=1?"Keep it up! You've got this! ⭐":"Start writing to build your streak!";
+}
+
+// ─── MEMORIES ─────────────────────────────────────────────────
+function renderMemories(){
+  const container=document.getElementById('memoriesContainer'); container.innerHTML='';
+  const today=new Date(todayKey());
+  [{label:'1 Week Ago',emoji:'📅',cls:'week',days:7},
+   {label:'1 Month Ago',emoji:'🗓️',cls:'month',days:30},
+   {label:'1 Year Ago',emoji:'🏆',cls:'year',days:365}].forEach(c=>{
+    const target=new Date(today); target.setDate(target.getDate()-c.days);
+    let found=null;
+    for(let delta=0;delta<=2&&!found;delta++){
+      for(const sign of[0,-1,1]){const t=new Date(target);t.setDate(t.getDate()+sign*delta);found=entries.find(e=>e.date===t.toISOString().slice(0,10));if(found)break;}
+    }
+    if(found){
+      const d=new Date(found.date+'T12:00:00'),card=document.createElement('div');
+      card.className=`memory-card ${c.cls}`;
+      card.innerHTML=`<div class="memory-when">${c.emoji} ${c.label}</div><div class="memory-date">${d.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div><div class="memory-feeling">${found.feeling.emoji}</div><div class="memory-text">${esc(found.text)}</div>`;
+      container.appendChild(card);
+    } else {
+      const el=document.createElement('div'); el.className='no-memory';
+      el.innerHTML=`<div class="emoji">${c.emoji}</div><p><strong>${c.label}:</strong> No entry yet — keep journaling and this will fill up! 🌱</p>`;
+      container.appendChild(el);
+    }
+  });
+}
+
+// ─── ALL ENTRIES ──────────────────────────────────────────────
+function renderAll(){
+  const container=document.getElementById('allEntriesContainer'); container.innerHTML='';
+  if(!entries.length){container.innerHTML=`<div class="empty-state"><div class="emoji">📖</div><p>No entries yet! Go write your first brave thing. 💪</p></div>`;return;}
+  entries.forEach(e=>{
+    const d=new Date(e.date+'T12:00:00'),item=document.createElement('div');
+    item.className='entry-list-item';
+    item.innerHTML=`<div class="entry-feeling-big">${e.feeling.emoji}</div><div class="entry-meta"><div class="entry-meta-date">${d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})}</div><div class="entry-meta-text">${esc(e.text)}</div></div><button class="delete-btn" onclick="deleteEntry('${e.date}')" title="Delete">🗑️</button>`;
+    container.appendChild(item);
+  });
+}
+
+// ─── TABS ─────────────────────────────────────────────────────
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['write','memories','all'][i]===tab));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`panel-${tab}`).classList.add('active');
+  if(tab==='memories') renderMemories();
+  if(tab==='all') renderAll();
+}
+
+// ─── CONFETTI + TOAST + HELPERS ───────────────────────────────
+function showConfetti(){
+  const colors=['#ef476f','#ffd166','#06d6a0','#a8d8ff','#c77dff'];
+  for(let i=0;i<55;i++) setTimeout(()=>{
+    const el=document.createElement('div'); el.className='confetti-piece';
+    el.style.left=Math.random()*100+'vw'; el.style.background=colors[Math.floor(Math.random()*colors.length)];
+    el.style.transform=`rotate(${Math.random()*360}deg)`;
+    el.style.animationDuration=(1.5+Math.random()*1.5)+'s'; el.style.animationDelay=(Math.random()*.5)+'s';
+    document.body.appendChild(el); setTimeout(()=>el.remove(),4000);
+  },i*18);
+}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+function todayKey(){return new Date().toISOString().slice(0,10);}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+</script>
+</body>
+</html>
